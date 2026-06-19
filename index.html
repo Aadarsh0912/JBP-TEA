@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JBP TEA — Luxury Craft Teas</title>
+  <meta name="description" content="Experience the ultra-smooth story of JBP TEA. Sourced from pristine high-altitude gardens and crafted for the ultimate sensory ritual.">
+  <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+
+  <!-- Premium Loader Screen -->
+  <div id="preloader">
+    <div class="loader-logo">JBP <span>TEA</span></div>
+    <div class="loader-container">
+      <div class="loader-circle"></div>
+      <div class="loader-progress-ring"></div>
+      <div id="loader-percentage" class="loader-percentage">0%</div>
+    </div>
+    <div class="loader-subtitle">Harvesting Perfection</div>
+  </div>
+
+  <!-- Navigation Bar -->
+  <header>
+    <a href="#" class="logo" id="header-logo">JBP <span>TEA</span></a>
+    <nav>
+      <a href="reserve.html" class="cta-btn">Reserve</a>
+    </nav>
+  </header>
+
+  <!-- Scroll driver creates the scrollable height. Canvas-sticky stays pinned. -->
+  <div id="scroll-driver">
+    <div id="canvas-sticky">
+      <canvas id="animation-canvas"></canvas>
+
+      <!-- Covers the watermark in the bottom-right corner of the frames -->
+      <div id="wm-cover"></div>
+
+      <!-- Brand title — appears at start, fades as user scrolls -->
+      <div id="brand-title">
+        <span class="brand-word" id="bw-left">Jabalpur</span>
+        <span class="brand-word accent" id="bw-right">Tea</span>
+      </div>
+
+      <div id="scroll-hint">
+        <span>Scroll</span>
+        <div class="hint-line"></div>
+      </div>
+
+      <!-- =====================================================
+           CINEMATIC TEXT SCENES — JS drives opacity & transform
+           ===================================================== -->
+
+      <!-- SCENE 2: Frames 15-37 — Bag blooms open -->
+      <div class="scene-text scene-left" id="scene-bloom">
+        <p class="scene-eyebrow">The Awakening</p>
+        <h2 class="scene-headline scene-headline--sm">Born from<br>the bloom.</h2>
+      </div>
+
+      <!-- SCENE 3: Frames 38-88 — Ingredients fall (The Origin) -->
+      <div class="scene-text scene-right" id="scene-origin">
+        <h2 class="scene-headline scene-headline--sm">Nature's<br>finest.</h2>
+        <p class="scene-tagline">Hand-picked. Sun-dried. Timeless.</p>
+      </div>
+
+      <!-- SCENE 4: Frames 93-132 — Cup fills (The Alchemy) -->
+      <div class="scene-text scene-left" id="scene-alchemy">
+        <p class="scene-eyebrow">The Alchemy</p>
+        <h2 class="scene-headline scene-headline--sm">Every ingredient<br>tells a story.</h2>
+      </div>
+
+      <!-- SCENE 5: Frames 137-171 — Hands hold cup (The Ritual) -->
+      <div class="scene-text scene-left" id="scene-ritual">
+        <p class="scene-ritual-word" id="sr-pour">Pour.</p>
+        <p class="scene-ritual-word" id="sr-wait">Wait.</p>
+        <p class="scene-ritual-word" id="sr-breathe">Breathe.</p>
+      </div>
+
+      <!-- Chapter labels — tiny, bottom edge, JS-driven opacity -->
+      <div class="chapter-label" id="label-origin">The Origin</div>
+      <div class="chapter-label" id="label-alchemy">The Alchemy</div>
+      <div class="chapter-label" id="label-ritual">The Ritual</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PRODUCT COLLECTION — appears after the animation ends
+       ============================================================ -->
+  <section id="collection" class="collection-section">
+
+    <!-- Section header -->
+    <div class="collection-header">
+      <p class="collection-eyebrow">The Collection</p>
+      <h2 class="collection-title">Choose your ritual.</h2>
+      <div class="collection-rule"></div>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="cards-grid">
+
+      <!-- DAWN -->
+      <div class="product-card" id="card-dawn">
+        <div class="card-image-wrap">
+          <img src="Dawn.png" alt="Dawn — Morning Clarity Blend" class="card-img">
+        </div>
+        <div class="card-body">
+          <h3 class="card-name">DAWN</h3>
+          <p class="card-blend">Morning Clarity Blend</p>
+          <p class="card-ingredients">Tulsi. Rose. Cardamom. Green tea.</p>
+          <div class="card-footer">
+            <div class="card-price-block">
+              <span class="card-price">₹ 890</span>
+              <span class="card-meta">15 Bags · Organic · Assam Origin</span>
+            </div>
+            <a href="#" class="card-cta" id="cta-dawn">Add to Ritual</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- DUSK (Bestseller) -->
+      <div class="product-card product-card--featured" id="card-dusk">
+        <div class="card-badge">Bestseller</div>
+        <div class="card-image-wrap">
+          <img src="Dusk.png" alt="Dusk — Evening Unwind Blend" class="card-img">
+        </div>
+        <div class="card-body">
+          <h3 class="card-name">DUSK</h3>
+          <p class="card-blend">Evening Unwind Blend</p>
+          <p class="card-ingredients">Chamomile. Rose. Cardamom. Black tea.</p>
+          <div class="card-footer">
+            <div class="card-price-block">
+              <span class="card-price">₹ 890</span>
+              <span class="card-meta">15 Bags · Organic · Assam Origin</span>
+            </div>
+            <a href="#" class="card-cta" id="cta-dusk">Add to Ritual</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- NIGHT -->
+      <div class="product-card product-card--dark" id="card-night">
+        <div class="card-image-wrap">
+          <img src="Night.png" alt="Night — Deep Rest Blend" class="card-img">
+        </div>
+        <div class="card-body">
+          <h3 class="card-name card-name--light">NIGHT</h3>
+          <p class="card-blend">Deep Rest Blend</p>
+          <p class="card-ingredients">Ashwagandha. Rose. Lavender. White tea.</p>
+          <div class="card-footer">
+            <div class="card-price-block">
+              <span class="card-price">₹ 890</span>
+              <span class="card-meta">15 Bags · Organic · Assam Origin</span>
+            </div>
+            <a href="#" class="card-cta card-cta--light" id="cta-night">Add to Ritual</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+
+  <script src="app.js"></script>
+</body>
+</html>

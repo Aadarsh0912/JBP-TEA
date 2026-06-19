@@ -1,0 +1,733 @@
+/* Import luxury Google fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,700;1,300&family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;500;700&display=swap');
+
+/* ============================================================
+   RESET & VARIABLES
+   ============================================================ */
+:root {
+  --bg:          #0c0d0c;
+  --text:        #f0ede8;
+  --muted:       #9a9d98;
+  --gold:        #c9a84c;
+  --gold-dim:    rgba(201,168,76,0.6);
+  --num-font:    'Playfair Display', 'Cormorant Garamond', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: auto; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) var(--bg);
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+/* ============================================================
+   PRELOADER
+   ============================================================ */
+#preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1.2s ease, visibility 1.2s;
+}
+#preloader.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.loader-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+  animation: pulse-logo 2s infinite ease-in-out;
+}
+.loader-logo span { color: var(--gold); }
+
+.loader-container { position: relative; width: 100px; height: 100px; }
+.loader-circle {
+  position: absolute; inset: 0;
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 50%;
+}
+.loader-progress-ring {
+  position: absolute; inset: 0;
+  border: 1px solid transparent;
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 1.4s linear infinite;
+}
+.loader-percentage {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: var(--gold);
+}
+.loader-subtitle {
+  margin-top: 2rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ============================================================
+   HEADER — minimal bar
+   ============================================================ */
+header {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  z-index: 100;
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+}
+.logo span { color: var(--gold); }
+
+nav { display: flex; align-items: center; }
+
+.cta-btn {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-decoration: none;
+  border: 1px solid var(--gold-dim);
+  padding: 0.55rem 1.4rem;
+  border-radius: 3px;
+  transition: background 0.3s, color 0.3s;
+  font-family: 'Inter', sans-serif;
+}
+.cta-btn:hover { background: var(--gold); color: var(--bg); }
+
+/* ============================================================
+   SCROLL DRIVER + STICKY CANVAS
+   ============================================================ */
+#scroll-driver {
+  height: 800vh; /* overridden by JS */
+  position: relative;
+}
+
+#canvas-sticky {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+#animation-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Watermark cover — fully opaque dark patch at bottom-right corner */
+#wm-cover {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 280px;
+  height: 180px;
+  background: radial-gradient(ellipse at 90% 90%, #0c0d0c 45%, rgba(12,13,12,0.6) 70%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ============================================================
+   BRAND TITLE — "Jabalpur Tea" at top-center, JS-driven opacity
+   ============================================================ */
+#brand-title {
+  position: absolute;
+  top: 14%;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.6em;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0; /* JS drives this */
+}
+
+.brand-word {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 7vw, 6.5rem);
+  font-weight: 300;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-shadow:
+    0 0 80px rgba(201, 168, 76, 0.35),
+    0 0 120px rgba(201, 168, 76, 0.12),
+    0 2px 30px rgba(0, 0, 0, 0.7);
+  line-height: 1;
+  will-change: opacity, transform, filter;
+}
+
+.brand-word.accent {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--gold);
+  text-shadow:
+    0 0 60px rgba(201, 168, 76, 0.65),
+    0 0 100px rgba(201, 168, 76, 0.25),
+    0 2px 20px rgba(0, 0, 0, 0.6);
+}
+
+
+
+/* ============================================================
+   SCROLL HINT — bottom-center, no background
+   ============================================================ */
+#scroll-hint {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+#scroll-hint span {
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hint-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--gold), transparent);
+  position: relative;
+  overflow: hidden;
+}
+.hint-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 50%;
+  background: var(--text);
+  animation: scroll-dot 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   CHAPTER LABELS — tiny, bottom-left, no background
+   ============================================================ */
+.chapter-label {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 2.5rem;
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  pointer-events: none;
+  opacity: 0; /* JS drives opacity */
+}
+
+/* ============================================================
+   CINEMATIC SCENE TEXTS — scroll-driven overlays
+   ============================================================ */
+
+/* Base scene container */
+.scene-text {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  right: 6vw;
+  top: 50%;
+  transform: translateY(-50%) translateX(40px);
+  text-align: right;
+  max-width: 520px;
+  will-change: opacity, transform, filter;
+}
+
+/* Left-positioned variant */
+.scene-text.scene-left {
+  right: auto;
+  left: 6vw;
+  text-align: left;
+  transform: translateY(-50%) translateX(-40px);
+}
+
+/* Right-positioned variant (explicit) */
+.scene-text.scene-right {
+  left: auto;
+  right: 6vw;
+  text-align: right;
+  transform: translateY(-50%) translateX(40px);
+}
+
+/* Eyebrow — tiny uppercase label with animated underline */
+.scene-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+  font-weight: 400;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1rem;
+  opacity: 0.9;
+  position: relative;
+  display: inline-block;
+}
+
+/* Animated gold accent line under eyebrow */
+.scene-eyebrow::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0%;
+  height: 1px;
+  background: var(--gold);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+  opacity: 0.6;
+}
+
+/* When scene is fully visible, trigger the line draw */
+.scene-text.scene-active .scene-eyebrow::after {
+  width: 100%;
+}
+
+/* Main headline */
+.scene-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3.5rem, 7vw, 6.5rem);
+  font-weight: 300;
+  line-height: 0.93;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-shadow:
+    0 0 100px rgba(201,168,76,0.18),
+    0 0 200px rgba(201,168,76,0.07),
+    0 4px 40px rgba(0,0,0,0.7);
+  margin-bottom: 1.3rem;
+}
+
+.scene-headline span {
+  color: var(--gold);
+}
+
+/* Smaller headline variant */
+.scene-headline--sm {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 1.05;
+}
+
+/* Tagline — italic subtitle */
+.scene-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.9rem, 1.6vw, 1.25rem);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: rgba(240, 237, 232, 0.65);
+  line-height: 1.7;
+}
+
+/* Ritual words — stacked, each animates independently */
+.scene-ritual-word {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 2.2rem;
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+  will-change: opacity, transform, filter;
+  text-shadow:
+    0 0 60px rgba(201,168,76,0.12),
+    0 4px 30px rgba(0,0,0,0.6);
+}
+
+.scene-ritual-word:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   PRODUCT COLLECTION SECTION
+   ============================================================ */
+.collection-section {
+  background: var(--bg);
+  padding: 8rem 5% 6rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle top gradient separator from animation */
+.collection-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-dim), transparent);
+}
+
+/* Header */
+.collection-header {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.collection-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1rem;
+}
+
+.collection-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  margin-bottom: 2rem;
+}
+
+.collection-rule {
+  width: 60px;
+  height: 1px;
+  background: var(--gold-dim);
+  margin: 0 auto;
+}
+
+/* ---- Cards Grid ---- */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;                /* razor-thin gap between cards */
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ---- Individual Card ---- */
+.product-card {
+  position: relative;
+  background: #0f100f;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow  0.55s cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Scroll-reveal: start hidden */
+  opacity: 0;
+  transform: translateY(50px);
+}
+
+/* Scroll-reveal active state (added by JS IntersectionObserver) */
+.product-card.is-visible {
+  animation: cardReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.product-card.is-visible:nth-child(2) { animation-delay: 0.12s; }
+.product-card.is-visible:nth-child(3) { animation-delay: 0.24s; }
+
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(50px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Hover lift */
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.18);
+  z-index: 2;
+}
+
+/* Featured card (Dusk) — slightly taller / highlighted */
+.product-card--featured {
+  background: #110e09;
+  box-shadow: 0 0 0 1px rgba(201,168,76,0.12);
+}
+
+/* Night card — deep navy */
+.product-card--dark {
+  background: #08090f;
+}
+
+/* ---- Bestseller Badge ---- */
+.card-badge {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  z-index: 5;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.55rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--gold);
+  padding: 0.3rem 0.7rem;
+  border-radius: 2px;
+}
+
+/* ---- Card Image ---- */
+.card-image-wrap {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.product-card:hover .card-img {
+  transform: scale(1.04);
+}
+
+/* ---- Card Body ---- */
+.card-body {
+  padding: 2rem 2rem 2.2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-top: 1px solid rgba(201,168,76,0.08);
+}
+
+/* Product name */
+.card-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.4rem, 3.5vw, 3.2rem);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.card-name--light {
+  color: var(--text);       /* Night card — white name */
+}
+
+/* Blend subtitle */
+.card-blend {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.85rem;
+}
+
+/* Ingredients */
+.card-ingredients {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(240,237,232,0.72);
+  line-height: 1.7;
+  margin-bottom: auto;
+  padding-bottom: 1.6rem;
+}
+
+/* ---- Card Footer (price + CTA) ---- */
+.card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 1.4rem;
+}
+
+.card-price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.card-price {
+  font-family: var(--num-font);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.card-meta {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(240,237,232,0.62);
+}
+
+/* ---- CTA Button ---- */
+.card-cta {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold);
+  border: 1px solid rgba(201,168,76,0.45);
+  padding: 0.65rem 1.2rem;
+  white-space: nowrap;
+  border-radius: 2px;
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.card-cta:hover {
+  background: var(--gold);
+  color: var(--bg);
+  border-color: var(--gold);
+}
+
+/* Night card light CTA */
+.card-cta--light {
+  color: rgba(240,237,232,0.8);
+  border-color: rgba(240,237,232,0.25);
+}
+
+.card-cta--light:hover {
+  background: rgba(240,237,232,0.1);
+  border-color: rgba(240,237,232,0.6);
+  color: var(--text);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .collection-section { padding: 5rem 4% 4rem; }
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  background: #060706;
+  border-top: 1px solid rgba(201,168,76,0.1);
+  padding: 5rem 8% 3rem;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 4rem;
+  margin-bottom: 3rem;
+}
+
+.footer-brand .footer-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.footer-brand .footer-logo span { color: var(--gold); }
+.footer-brand p { color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
+
+.footer-links h4 {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.2rem;
+}
+.footer-links ul { list-style: none; }
+.footer-links ul li { margin-bottom: 0.7rem; }
+.footer-links ul li a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.82rem;
+  transition: color 0.3s;
+}
+.footer-links ul li a:hover { color: var(--text); }
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse-logo {
+  0%, 100% { opacity: 0.75; }
+  50%       { opacity: 1; transform: scale(1.01); }
+}
+@keyframes scroll-dot {
+  0%   { transform: translateY(-100%); }
+  80%  { transform: translateY(220%); }
+  100% { transform: translateY(220%); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .footer-content { grid-template-columns: 1fr; gap: 2rem; }
+  header { padding: 1.2rem 1.5rem; }
+  .chapter-label { right: 1.5rem; bottom: 1.5rem; }
+  #scroll-hint   { left: 1.5rem;  bottom: 1.5rem; }
+}
