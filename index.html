@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JBP TEA — Luxury Craft Teas</title>
-  <meta name="description" content="Experience the ultra-smooth story of JBP TEA. Sourced from pristine high-altitude gardens and crafted for the ultimate sensory ritual.">
-  <link rel="stylesheet" href="styles.css?v=2">
+  <meta name="description"
+    content="Experience the ultra-smooth story of JBP TEA. Sourced from pristine high-altitude gardens and crafted for the ultimate sensory ritual.">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
+
 <body>
 
   <!-- Premium Loader Screen -->
@@ -24,12 +27,14 @@
   <header>
     <a href="#" class="logo" id="header-logo">JBP <span>TEA</span></a>
     <nav>
-      <a href="reserve.html" class="cta-btn">Reserve</a>
+      <a href="#history" class="cta-btn history-btn-nav" onclick="openHistoryModal(event)">Order History</a>
+      <a href="#reserve" class="cta-btn">Reserve</a>
     </nav>
   </header>
 
+
   <!-- Scroll driver creates the scrollable height. Canvas-sticky stays pinned. -->
-  <div id="scroll-driver">
+  <div id="scroll-driver" data-header-theme="light">
     <div id="canvas-sticky">
       <canvas id="animation-canvas"></canvas>
 
@@ -86,13 +91,12 @@
   <!-- ============================================================
        PRODUCT COLLECTION — appears after the animation ends
        ============================================================ -->
-  <section id="collection" class="collection-section">
+  <section id="collection" class="collection-section" data-header-theme="light">
 
     <!-- Section header -->
     <div class="collection-header">
       <p class="collection-eyebrow">The Collection</p>
-      <h2 class="collection-title">Choose your ritual.</h2>
-      <div class="collection-rule"></div>
+      <h2 class="collection-title">Choose your <em>ritual.</em></h2>
     </div>
 
     <!-- Cards grid -->
@@ -109,17 +113,16 @@
           <p class="card-ingredients">Tulsi. Rose. Cardamom. Green tea.</p>
           <div class="card-footer">
             <div class="card-price-block">
-              <span class="card-price">₹ 890</span>
+              <span class="card-price">₹ 1099</span>
               <span class="card-meta">15 Bags · Organic · Assam Origin</span>
             </div>
-            <a href="#" class="card-cta" id="cta-dawn">Add to Ritual</a>
+            <a href="#reserve" onclick="selectBlendFromLink('DAWN')" class="card-cta" id="cta-dawn">Add to Ritual</a>
           </div>
         </div>
       </div>
 
-      <!-- DUSK (Bestseller) -->
-      <div class="product-card product-card--featured" id="card-dusk">
-        <div class="card-badge">Bestseller</div>
+      <!-- DUSK -->
+      <div class="product-card" id="card-dusk">
         <div class="card-image-wrap">
           <img src="Dusk.png" alt="Dusk — Evening Unwind Blend" class="card-img">
         </div>
@@ -129,16 +132,17 @@
           <p class="card-ingredients">Chamomile. Rose. Cardamom. Black tea.</p>
           <div class="card-footer">
             <div class="card-price-block">
-              <span class="card-price">₹ 890</span>
+              <span class="card-price">₹ 999</span>
               <span class="card-meta">15 Bags · Organic · Assam Origin</span>
             </div>
-            <a href="#" class="card-cta" id="cta-dusk">Add to Ritual</a>
+            <a href="#reserve" onclick="selectBlendFromLink('DUSK')" class="card-cta" id="cta-dusk">Add to Ritual</a>
           </div>
         </div>
       </div>
 
-      <!-- NIGHT -->
-      <div class="product-card product-card--dark" id="card-night">
+      <!-- NIGHT (Bestseller) -->
+      <div class="product-card product-card--dark product-card--featured" id="card-night">
+        <div class="card-badge">Bestseller</div>
         <div class="card-image-wrap">
           <img src="Night.png" alt="Night — Deep Rest Blend" class="card-img">
         </div>
@@ -148,10 +152,11 @@
           <p class="card-ingredients">Ashwagandha. Rose. Lavender. White tea.</p>
           <div class="card-footer">
             <div class="card-price-block">
-              <span class="card-price">₹ 890</span>
+              <span class="card-price">₹ 1199</span>
               <span class="card-meta">15 Bags · Organic · Assam Origin</span>
             </div>
-            <a href="#" class="card-cta card-cta--light" id="cta-night">Add to Ritual</a>
+            <a href="#reserve" onclick="selectBlendFromLink('NIGHT')" class="card-cta card-cta--light"
+              id="cta-night">Add to Ritual</a>
           </div>
         </div>
       </div>
@@ -161,6 +166,413 @@
 
 
 
+
+  <section id="reserve" style="background: var(--bg); position: relative; z-index: 10;">
+
+
+    <!-- History Overlay -->
+    <div id="history-overlay">
+      <div class="history-modal">
+        <button class="close-modal" onclick="closeHistoryModal()">×</button>
+        <h2 class="history-title">Your Ritual History</h2>
+        <p class="history-sub">Enter the WhatsApp number used for your reservation.</p>
+        <div class="history-form">
+          <input type="tel" id="history-phone" placeholder="e.g. +91 98765 43210" required>
+          <button class="history-submit-btn" onclick="fetchOrderHistory()">Find Orders</button>
+        </div>
+        <div id="history-results" class="history-results"></div>
+      </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="success-overlay">
+      <svg class="seal" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" stroke="#c9a84c" stroke-width="1.5" />
+        <circle cx="50" cy="50" r="40" stroke="#c9a84c" stroke-width="0.8" stroke-dasharray="4 4" />
+        <text x="50" y="44" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="10" fill="#c9a84c"
+          letter-spacing="3">JBP</text>
+        <text x="50" y="58" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="8" fill="#c9a84c"
+          letter-spacing="4">TEA</text>
+        <path d="M30 68 Q50 76 70 68" stroke="#c9a84c" stroke-width="0.8" fill="none" />
+      </svg>
+      <h2 class="success-title">Your ritual is reserved.</h2>
+      <p class="success-sub">We'll reach out on WhatsApp to confirm your order.</p>
+      <p class="success-ref" id="success-ref">Reservation #JBP-0001</p>
+      <a href="index.html" class="success-back">Return to the experience</a>
+    </div>
+
+
+
+    <!-- Nav -->
+
+
+    <!-- Top paper tear transitioning collection (dark chocolate) -> hero (yellow) -->
+    <div class="tear-wrapper-top"
+      style="background-color: transparent; line-height: 0; position: relative; z-index: 5; margin-top: -1px; margin-bottom: -60px; overflow: hidden; width: 100%;">
+      <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
+        style="display: block; width: 100%; height: 60px;">
+        <defs>
+          <filter id="realistic-tear-shadow-top">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04 0.04" numOctaves="4" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G"
+              result="displaced" />
+            <feDropShadow in="displaced" dx="0" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.35)"
+              flood-opacity="0.8" />
+          </filter>
+        </defs>
+        <g filter="url(#realistic-tear-shadow-top)">
+          <!-- Underlay vanilla paper core peeking out -->
+          <path d="M0,-20 L1440,-20 L1440,32 Q1200,40 960,30 T480,36 T0,32 L0,-20 Z" fill="#fdf5e2"
+            transform="translate(0, 1.5)" />
+          <!-- Main dark chocolate top layer -->
+          <path d="M0,-20 L1440,-20 L1440,32 Q1200,40 960,30 T480,36 T0,32 L0,-20 Z" fill="#180d08" />
+        </g>
+      </svg>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero" id="reserve-hero" data-header-theme="dark">
+      <canvas id="hero-animation-canvas" class="hero-canvas"></canvas>
+      <div class="particles" id="particles"></div>
+
+      <div class="hero-content">
+        <p class="hero-eyebrow">Limited Batch · Handcrafted · Since 1896</p>
+        <h1 class="hero-title">Secure Your<br><em>Ritual.</em></h1>
+        <p class="hero-sub">Each tin is handcrafted in small batches.<br>Once a batch is gone — it's gone until next
+          harvest.</p>
+
+        <div class="scroll-arrow">
+          <span>Scroll to make it yours</span>
+          <div class="arrow-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom paper tear transitioning yellow→dark -->
+    <div class="tear-wrapper-bottom"
+      style="background-color: transparent; line-height: 0; position: relative; z-index: 5; margin-top: -60px; overflow: hidden; width: 100%;">
+      <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
+        style="display: block; width: 100%; height: 60px; transform: scaleY(-1);">
+        <defs>
+          <filter id="realistic-tear-shadow-bottom">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04 0.04" numOctaves="4" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G"
+              result="displaced" />
+            <feDropShadow in="displaced" dx="0" dy="4" stdDeviation="3" flood-color="rgba(0,0,0,0.35)"
+              flood-opacity="0.85" />
+          </filter>
+        </defs>
+        <g filter="url(#realistic-tear-shadow-bottom)">
+          <!-- Underlay vanilla paper core peeking out -->
+          <path d="M0,-20 L1440,-20 L1440,32 Q1200,40 960,30 T480,36 T0,32 L0,-20 Z" fill="#fdf5e2"
+            transform="translate(0, 1.5)" />
+          <!-- Main dark bottom layer -->
+          <path d="M0,-20 L1440,-20 L1440,32 Q1200,40 960,30 T480,36 T0,32 L0,-20 Z" fill="#24150f" />
+        </g>
+      </svg>
+    </div>
+
+    <div id="reserve-steps-container" data-header-theme="light">
+      <!-- Step 2 — Quantity + Add-ons -->
+      <div class="section reveal reveal-delay-1">
+        <p class="section-eyebrow"><span class="step-text">Step</span> <span class="step-num">01</span></p>
+        <h2 class="section-title">Craft your order.</h2>
+        <p class="section-desc">Add finishing touches to make it truly yours.</p>
+
+
+
+        <div class="options-row">
+          <!-- Select Blends & Quantities -->
+          <div class="option-box blend-selector-box">
+            <p class="option-label">Choose Blends & Quantities</p>
+            <div class="blends-list">
+
+              <!-- DAWN -->
+              <div class="blend-qty-item" id="item-dawn">
+                <div class="blend-qty-info">
+                  <span class="blend-qty-name">DAWN</span>
+                  <span class="blend-qty-desc">Morning Clarity · ₹1099</span>
+                </div>
+                <div class="qty-stepper">
+                  <button class="qty-btn" onclick="changeBlendQty('DAWN', -1)">−</button>
+                  <div class="qty-num-wrap">
+                    <span class="qty-num" id="qty-dawn">0</span>
+                  </div>
+                  <button class="qty-btn" onclick="changeBlendQty('DAWN', 1)">+</button>
+                </div>
+              </div>
+
+              <!-- DUSK -->
+              <div class="blend-qty-item active" id="item-dusk">
+                <div class="blend-qty-info">
+                  <span class="blend-qty-name">DUSK</span>
+                  <span class="blend-qty-desc">Evening Unwind · ₹999</span>
+                </div>
+                <div class="qty-stepper">
+                  <button class="qty-btn" onclick="changeBlendQty('DUSK', -1)">−</button>
+                  <div class="qty-num-wrap">
+                    <span class="qty-num" id="qty-dusk">1</span>
+                  </div>
+                  <button class="qty-btn" onclick="changeBlendQty('DUSK', 1)">+</button>
+                </div>
+              </div>
+
+              <!-- NIGHT -->
+              <div class="blend-qty-item" id="item-night">
+                <div class="blend-qty-info">
+                  <span class="blend-qty-name">NIGHT</span>
+                  <span class="blend-qty-desc">Deep Rest · ₹1199</span>
+                </div>
+                <div class="qty-stepper">
+                  <button class="qty-btn" onclick="changeBlendQty('NIGHT', -1)">−</button>
+                  <div class="qty-num-wrap">
+                    <span class="qty-num" id="qty-night">0</span>
+                  </div>
+                  <button class="qty-btn" onclick="changeBlendQty('NIGHT', 1)">+</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Add-ons -->
+          <div class="option-box">
+            <p class="option-label">Add to your ritual</p>
+            <div class="addons-grid" id="addons-grid">
+
+              <div class="addon-item" data-price="150" onclick="toggleAddon(this)">
+                <div class="addon-cb">
+                  <svg viewBox="0 0 10 8" fill="none" stroke="#0c0d0c" stroke-width="2">
+                    <path d="M1 4l3 3 5-6" />
+                  </svg>
+                </div>
+                <div class="addon-text">
+                  <p class="addon-name">Silk Ribbon Wrap</p>
+                  <p class="addon-desc">Hand-tied · +₹150</p>
+                </div>
+              </div>
+
+              <div class="addon-item" data-price="200" onclick="toggleAddon(this)">
+                <div class="addon-cb">
+                  <svg viewBox="0 0 10 8" fill="none" stroke="#0c0d0c" stroke-width="2">
+                    <path d="M1 4l3 3 5-6" />
+                  </svg>
+                </div>
+                <div class="addon-text">
+                  <p class="addon-name">Wax Seal</p>
+                  <p class="addon-desc">Gold stamped · +₹200</p>
+                </div>
+              </div>
+
+              <div class="addon-item" data-price="350" onclick="toggleAddon(this)">
+                <div class="addon-cb">
+                  <svg viewBox="0 0 10 8" fill="none" stroke="#0c0d0c" stroke-width="2">
+                    <path d="M1 4l3 3 5-6" />
+                  </svg>
+                </div>
+                <div class="addon-text">
+                  <p class="addon-name">Keepsake Box</p>
+                  <p class="addon-desc">Wooden, engraved · +₹350</p>
+                </div>
+              </div>
+
+              <div class="addon-item" data-price="0" onclick="toggleAddon(this)">
+                <div class="addon-cb">
+                  <svg viewBox="0 0 10 8" fill="none" stroke="#0c0d0c" stroke-width="2">
+                    <path d="M1 4l3 3 5-6" />
+                  </svg>
+                </div>
+                <div class="addon-text">
+                  <p class="addon-name">Personalised Note</p>
+                  <p class="addon-desc">Handwritten card · Free</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Personalisation toggle -->
+        <div class="personalise-box reveal reveal-delay-2">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <p class="toggle-title">Personalise your tin</p>
+              <p class="toggle-sub">Add a name or message to your order</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="personalise-toggle" onchange="togglePersonalise()">
+              <div class="toggle-track">
+                <div class="toggle-thumb"></div>
+              </div>
+            </label>
+          </div>
+          <div class="personalise-fields-wrapper" id="personalise-fields">
+            <div class="personalise-fields-inner">
+              <div class="field">
+                <label>Name on tin</label>
+                <input type="text" id="tin-name" placeholder="e.g. Adarsh" maxlength="20">
+              </div>
+              <div class="field">
+                <label>Message (optional)</label>
+                <input type="text" id="tin-message" placeholder="e.g. For morning rituals" maxlength="40">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 — Your Details + Reserve -->
+      <div class="section reveal">
+        <p class="section-eyebrow"><span class="step-text">Step</span> <span class="step-num">02</span></p>
+        <h2 class="section-title">Your details.</h2>
+        <p class="section-desc">We'll confirm your reservation via WhatsApp within 24 hours.</p>
+
+        <div class="form-box">
+          <div class="form-grid">
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="f-name" placeholder="Your name" required>
+            </div>
+            <div class="field">
+              <label>WhatsApp Number</label>
+              <input type="tel" id="f-phone" placeholder="+91 98765 43210" required>
+            </div>
+            <div class="field">
+              <label>Email Address</label>
+              <input type="email" id="f-email" placeholder="your@email.com">
+            </div>
+            <div class="field">
+              <label>City</label>
+              <input type="text" id="f-city" placeholder="e.g. Jabalpur">
+            </div>
+            <div class="field full">
+              <label>Delivery Address</label>
+              <input type="text" id="f-address" placeholder="Street, Area, PIN code">
+            </div>
+            <div class="field full">
+              <label>Special Instructions (optional)</label>
+              <textarea id="f-notes" rows="2" placeholder="Gift wrapping, specific delivery time, etc."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Summary + Reserve Button -->
+      <div style="max-width:1100px; margin: 0 auto; padding: 0 5% 2rem;">
+        <div class="summary-bar reveal">
+          <div class="summary-left">
+            <p class="summary-label">Total Estimate</p>
+            <p class="summary-price"><span>₹</span><span id="total-price">890</span></p>
+            <p class="summary-breakdown" id="price-breakdown">1 × DUSK · ₹890</p>
+          </div>
+          <div
+            style="font-size:0.6rem; color:var(--muted); letter-spacing:0.12em; max-width:220px; line-height:1.8; text-align:right;">
+            Final price confirmed on WhatsApp.<br>No payment collected online.
+          </div>
+        </div>
+
+        <button class="reserve-btn" id="reserve-btn" onclick="submitReservation()">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span class="btn-text">Place Reservation</span>
+        </button>
+        <p class="reserve-note">
+          Your reservation is not a payment. We will confirm availability<br>and share payment details
+          within 24 hours.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================
+       PAPER TEAR + TESTIMONIALS
+       ============================================================ -->
+
+    <!-- Realistic jagged paper tear transitioning dark→vanilla -->
+    <div class="tear-wrapper">
+      <!-- The dark chocolate shape that sits ON TOP of the vanilla below -->
+      <svg class="tear-top-svg" viewBox="0 0 1440 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="realistic-tear-shadow-testimonial">
+            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="4" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G"
+              result="displaced" />
+            <feDropShadow in="displaced" dx="0" dy="5" stdDeviation="4" flood-color="rgba(0,0,0,0.35)"
+              flood-opacity="0.8" />
+          </filter>
+        </defs>
+        <g filter="url(#realistic-tear-shadow-testimonial)">
+          <!-- Paper fiber core layer showing slightly underneath for realism -->
+          <path d="M0,-20 L1440,-20 L1440,48 Q1200,58 960,42 T480,52 T0,46 L0,-20 Z" fill="#fdf5e2"
+            transform="translate(0, 2)" />
+          <!-- Main torn edge: dense micro-variation for authenticity -->
+          <path d="M0,-20 L1440,-20 L1440,48 Q1200,58 960,42 T480,52 T0,46 L0,-20 Z" fill="#24150f" />
+        </g>
+      </svg>
+    </div>
+
+    <!-- Testimonials section on vanilla background -->
+    <section id="testimonials" class="testimonials-section" data-header-theme="dark">
+      <div class="testimonials-header">
+        <p class="testimonials-eyebrow">What Our Buyers Say</p>
+        <h2 class="testimonials-title">Loved by those<br><em>who know their tea.</em></h2>
+      </div>
+
+      <div class="testimonials-grid">
+
+        <div class="testimonial-card reveal">
+          <div class="testimonial-quote-mark">&ldquo;</div>
+          <p class="testimonial-text">Every sip of DAWN is a moment of pure clarity. The tulsi and rose blend perfectly
+            — it has completely replaced my morning coffee. A ritual I'll never give up.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">P</div>
+            <div>
+              <p class="testimonial-name">Priya Sharma</p>
+              <p class="testimonial-meta">Jabalpur · DAWN Blend</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card reveal reveal-delay-1">
+          <div class="testimonial-quote-mark">&ldquo;</div>
+          <p class="testimonial-text">The DUSK tin arrived beautifully sealed. Opening it felt like unwrapping something
+            precious. The chamomile and cardamom aroma filled the entire room instantly.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">R</div>
+            <div>
+              <p class="testimonial-name">Rohan Mehta</p>
+              <p class="testimonial-meta">Mumbai · DUSK Blend</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card reveal reveal-delay-2">
+          <div class="testimonial-quote-mark">&ldquo;</div>
+          <p class="testimonial-text">NIGHT changed my evenings completely. The ashwagandha and lavender combination is
+            so calming. I sleep better and wake up refreshed. Worth every rupee.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">A</div>
+            <div>
+              <p class="testimonial-name">Ananya Kohli</p>
+              <p class="testimonial-meta">Kolkata · NIGHT Blend</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Founder note at the bottom of the vanilla section -->
+      <div class="founder-vanilla reveal">
+        <blockquote class="founder-quote-vanilla">
+          &ldquo;Every tin that leaves our estate carries a century of patience.<br>We do not rush the harvest.&rdquo;
+        </blockquote>
+        <p class="founder-sig-vanilla">— Aadarsh Rao, Founder</p>
+      </div>
+    </section>
+
+  </section>
   <script src="app.js"></script>
+
 </body>
+
 </html>
