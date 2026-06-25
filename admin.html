@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JBP TEA — Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --bg2: #141416;
+      --bg3: #1e1e22;
+      --bg4: #28282e;
+      --text: #f0ede8;
+      --text2: #c4bfb6;
+      --muted: #6b6660;
+      --gold: #f0ba32;
+      --gold-soft: rgba(240,186,50,0.12);
+      --gold-dim: rgba(240,186,50,0.25);
+      --green: #34d399;
+      --green-soft: rgba(52,211,153,0.12);
+      --blue: #60a5fa;
+      --blue-soft: rgba(96,165,250,0.12);
+      --orange: #fb923c;
+      --orange-soft: rgba(251,146,60,0.12);
+      --red: #f87171;
+      --purple: #a78bfa;
+      --purple-soft: rgba(167,139,250,0.12);
+      --radius: 14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════
+       ANIMATED BACKGROUND
+       ══════════════════════════════════════ */
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-glow::before, .bg-glow::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      animation: glow-drift 15s ease-in-out infinite alternate;
+    }
+    .bg-glow::before {
+      width: 600px; height: 600px;
+      background: var(--gold);
+      top: -200px; right: -100px;
+    }
+    .bg-glow::after {
+      width: 500px; height: 500px;
+      background: var(--purple);
+      bottom: -200px; left: -100px;
+      animation-delay: -7s;
+    }
+    @keyframes glow-drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(60px, 40px) scale(1.15); }
+    }
+
+    /* ══════════════════════════════════════
+       LOGIN SCREEN
+       ══════════════════════════════════════ */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-card {
+      background: var(--bg2);
+      border: 1px solid rgba(240,186,50,0.12);
+      border-radius: 20px;
+      padding: 3.5rem 3rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      animation: card-enter 0.8s cubic-bezier(0.22,1,0.36,1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    @keyframes card-enter {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-seal {
+      width: 70px; height: 70px;
+      margin: 0 auto 1.5rem;
+      border: 1.5px solid var(--gold-dim);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .login-seal::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px dashed rgba(240,186,50,0.2);
+      border-radius: 50%;
+      animation: seal-rotate 20s linear infinite;
+    }
+    @keyframes seal-rotate { to { transform: rotate(360deg); } }
+
+    .login-seal-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    .login-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      background: linear-gradient(135deg, var(--text), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .login-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 2.5rem;
+    }
+
+    .login-field {
+      position: relative;
+      margin-bottom: 1.2rem;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 1rem 1.2rem 1rem 3rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .login-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(240,186,50,0.1);
+    }
+
+    .login-field-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--gold), #d4a020);
+      color: #0a0a0b;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 4px 20px rgba(240,186,50,0.2);
+    }
+    .login-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px rgba(240,186,50,0.3);
+    }
+    .login-btn:active { transform: scale(0.98); }
+
+    .login-error {
+      color: var(--red);
+      font-size: 0.8rem;
+      margin-top: 1rem;
+      display: none;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%     { transform: translateX(-6px); }
+      75%     { transform: translateX(6px); }
+    }
+
+    /* ══════════════════════════════════════
+       DASHBOARD
+       ══════════════════════════════════════ */
+    #dashboard { display: none; position: relative; z-index: 1; }
+
+    .dash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: var(--bg2);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .dash-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .dash-logo span { color: var(--gold); }
+
+    .dash-badge {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.55rem;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: var(--gold-soft);
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .dash-actions { display: flex; gap: 0.6rem; align-items: center; }
+
+    .btn-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-size: 1rem;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: transparent;
+      color: var(--text2);
+    }
+    .btn-icon:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
+    .btn-icon.danger { color: var(--red); border-color: rgba(248,113,113,0.2); }
+    .btn-icon.danger:hover { background: rgba(248,113,113,0.08); }
+
+    /* ── STATS ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      padding: 1.5rem 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+      opacity: 0;
+      transform: translateY(15px);
+      animation: stat-in 0.5s ease forwards;
+    }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+    @keyframes stat-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-card:hover {
+      border-color: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .stat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--blue), var(--purple)); }
+    .stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--gold), var(--orange)); }
+    .stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--green), var(--blue)); }
+    .stat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--orange), var(--red)); }
+
+    .stat-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .stat-icon.blue   { background: var(--blue-soft);   color: var(--blue); }
+    .stat-icon.gold   { background: var(--gold-soft);   color: var(--gold); }
+    .stat-icon.green  { background: var(--green-soft);  color: var(--green); }
+    .stat-icon.orange { background: var(--orange-soft); color: var(--orange); }
+
+    .stat-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2rem;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 320px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.7rem 1rem 0.7rem 2.4rem;
+      background: var(--bg2);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .search-input:focus {
+      border-color: rgba(240,186,50,0.3);
+      box-shadow: 0 0 0 3px rgba(240,186,50,0.06);
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-icon {
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .filter-pill {
+      padding: 0.45rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: transparent;
+      color: var(--text2);
+      transition: all 0.25s;
+    }
+    .filter-pill:hover { background: rgba(255,255,255,0.04); }
+    .filter-pill.active {
+      background: var(--gold-soft);
+      border-color: var(--gold-dim);
+      color: var(--gold);
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      padding: 0 2rem 2rem;
+    }
+
+    .orders-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--bg2);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .orders-table thead { background: var(--bg3); }
+
+    .orders-table th {
+      padding: 0.9rem 1.2rem;
+      text-align: left;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .orders-table td {
+      padding: 0.95rem 1.2rem;
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255,255,255,0.03);
+      vertical-align: middle;
+    }
+
+    .orders-table tbody tr {
+      transition: background 0.2s;
+      animation: row-enter 0.4s ease forwards;
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    @keyframes row-enter {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .orders-table tbody tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .order-ref {
+      color: var(--gold);
+      font-weight: 600;
+      font-size: 0.76rem;
+      letter-spacing: 0.06em;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .customer-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .customer-avatar {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .customer-info { display: flex; flex-direction: column; }
+    .customer-name { font-weight: 500; font-size: 0.84rem; }
+    .customer-phone { font-size: 0.72rem; color: var(--muted); }
+
+    .blend-tags {
+      display: flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+    }
+    .blend-tag {
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      background: var(--bg3);
+      color: var(--text2);
+      white-space: nowrap;
+    }
+
+    .order-total {
+      font-weight: 700;
+      font-size: 0.9rem;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .order-date {
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+    .order-time {
+      display: block;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.2);
+      margin-top: 0.15rem;
+    }
+
+    /* Status pill */
+    .status-select {
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      outline: none;
+      -webkit-appearance: none;
+      letter-spacing: 0.04em;
+      transition: all 0.3s;
+    }
+
+    .status-select.Received  { background: var(--blue-soft);   color: var(--blue);   border-color: rgba(96,165,250,0.2); }
+    .status-select.Confirmed { background: var(--orange-soft); color: var(--orange); border-color: rgba(251,146,60,0.2); }
+    .status-select.Shipped   { background: var(--purple-soft); color: var(--purple); border-color: rgba(167,139,250,0.2); }
+    .status-select.Delivered  { background: var(--green-soft);  color: var(--green);  border-color: rgba(52,211,153,0.2); }
+
+    .status-select option { background: var(--bg2); color: var(--text); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--bg3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 0.9rem 1.4rem;
+      font-size: 0.82rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      z-index: 999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.22,1,0.36,1);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-icon { font-size: 1.1rem; }
+
+    /* ── EMPTY / LOADING ── */
+    .empty-state {
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+    .empty-state p { font-size: 1rem; margin-bottom: 0.3rem; color: var(--text2); }
+    .empty-state small { font-size: 0.78rem; }
+
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5rem;
+    }
+    .loading-spinner::after {
+      content: '';
+      width: 32px; height: 32px;
+      border: 2px solid rgba(240,186,50,0.15);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .search-box { max-width: none; }
+      .filter-pills { justify-content: center; }
+    }
+    @media (max-width: 600px) {
+      .stats-bar { grid-template-columns: 1fr; padding: 1rem; }
+      .dash-header { padding: 0.8rem 1rem; }
+      .table-wrap { padding: 0 0.8rem 1rem; }
+      .toolbar { padding: 0 0.8rem; }
+    }
+
+    /* ── REDUCED MOTION ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"></div>
+
+  <!-- ═══ LOGIN ═══ -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-seal">
+        <span class="login-seal-text">JBP</span>
+      </div>
+      <h1 class="login-title">Admin Dashboard</h1>
+      <p class="login-sub">Enter your credentials to continue</p>
+      <div class="login-field">
+        <span class="login-field-icon">🔒</span>
+        <input type="password" class="login-input" id="admin-password" placeholder="Admin password" autofocus>
+      </div>
+      <button class="login-btn" id="login-btn" onclick="adminLogin()">Sign In</button>
+      <p class="login-error" id="login-error">Invalid password. Please try again.</p>
+    </div>
+  </div>
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <div id="dashboard">
+
+    <div class="dash-header">
+      <div class="dash-logo">JBP <span>TEA</span> <span class="dash-badge">Admin</span></div>
+      <div class="dash-actions">
+        <button class="btn-icon" onclick="loadOrders()" title="Refresh">↻</button>
+        <button class="btn-icon danger" onclick="adminLogout()" title="Logout">⏻</button>
+      </div>
+    </div>
+
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-card">
+        <div class="stat-icon blue">📦</div>
+        <p class="stat-label">Total Orders</p>
+        <p class="stat-value" id="stat-total">—</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold">💰</div>
+        <p class="stat-label">Total Revenue</p>
+        <p class="stat-value" id="stat-revenue" style="color:var(--gold)">—</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">📅</div>
+        <p class="stat-label">Orders Today</p>
+        <p class="stat-value" id="stat-today">—</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">⏳</div>
+        <p class="stat-label">Pending</p>
+        <p class="stat-value" id="stat-pending">—</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <h2 class="toolbar-title">Recent Orders</h2>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="search-input" placeholder="Search by name, phone, or order ID..." oninput="filterOrders()">
+      </div>
+      <div class="filter-pills">
+        <button class="filter-pill active" data-filter="all" onclick="setFilter('all', this)">All</button>
+        <button class="filter-pill" data-filter="Received" onclick="setFilter('Received', this)">Received</button>
+        <button class="filter-pill" data-filter="Confirmed" onclick="setFilter('Confirmed', this)">Confirmed</button>
+        <button class="filter-pill" data-filter="Shipped" onclick="setFilter('Shipped', this)">Shipped</button>
+        <button class="filter-pill" data-filter="Delivered" onclick="setFilter('Delivered', this)">Delivered</button>
+      </div>
+    </div>
+
+    <div class="table-wrap" id="table-container">
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span class="toast-icon">✓</span>
+    <span id="toast-text">Status updated</span>
+  </div>
+
+  <script>
+    let authToken = sessionStorage.getItem('adminToken') || '';
+    let allOrders = [];
+    let currentFilter = 'all';
+
+    const avatarColors = ['#f0ba32','#60a5fa','#34d399','#fb923c','#a78bfa','#f87171','#e879f9','#38bdf8'];
+
+    if (authToken) showDashboard();
+
+    document.getElementById('admin-password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') adminLogin();
+    });
+
+    function adminLogin() {
+      const password = document.getElementById('admin-password').value;
+      const errorEl = document.getElementById('login-error');
+      errorEl.style.display = 'none';
+
+      fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          authToken = data.token;
+          sessionStorage.setItem('adminToken', authToken);
+          showDashboard();
+        } else {
+          errorEl.style.display = 'block';
+          errorEl.style.animation = 'none';
+          void errorEl.offsetWidth; // reflow
+          errorEl.style.animation = 'shake 0.4s ease';
+        }
+      })
+      .catch(() => {
+        errorEl.textContent = 'Connection error.';
+        errorEl.style.display = 'block';
+      });
+    }
+
+    function adminLogout() {
+      authToken = '';
+      sessionStorage.removeItem('adminToken');
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('admin-password').value = '';
+    }
+
+    function showDashboard() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadOrders();
+    }
+
+    function loadOrders() {
+      const container = document.getElementById('table-container');
+      container.innerHTML = '<div class="loading-spinner"></div>';
+
+      fetch('/api/admin/orders', {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      })
+      .then(r => {
+        if (r.status === 401) { adminLogout(); throw new Error('Unauthorized'); }
+        return r.json();
+      })
+      .then(data => {
+        if (data.success) {
+          allOrders = data.orders;
+          renderStats(allOrders);
+          filterOrders();
+        }
+      })
+      .catch(err => {
+        if (err.message !== 'Unauthorized') {
+          container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load orders</p><small>Check your server connection</small></div>';
+        }
+      });
+    }
+
+    function renderStats(orders) {
+      const total = orders.length;
+      const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+      const today = new Date().toISOString().slice(0, 10);
+      const ordersToday = orders.filter(o => (o.createdAt || '').slice(0, 10) === today).length;
+      const pending = orders.filter(o => !o.status || o.status === 'Received').length;
+
+      animateValue('stat-total', total);
+      document.getElementById('stat-revenue').textContent = '₹' + revenue.toLocaleString('en-IN');
+      animateValue('stat-today', ordersToday);
+      animateValue('stat-pending', pending);
+    }
+
+    function animateValue(id, end) {
+      const el = document.getElementById(id);
+      if (end === 0) { el.textContent = '0'; return; }
+      let current = 0;
+      const step = Math.max(1, Math.floor(end / 20));
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= end) { current = end; clearInterval(interval); }
+        el.textContent = current;
+      }, 30);
+    }
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      filterOrders();
+    }
+
+    function filterOrders() {
+      const searchTerm = (document.getElementById('search-input').value || '').toLowerCase();
+      let filtered = allOrders;
+
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter(o => (o.status || 'Received') === currentFilter);
+      }
+
+      if (searchTerm) {
+        filtered = filtered.filter(o =>
+          (o.name || '').toLowerCase().includes(searchTerm) ||
+          (o.phone || '').toLowerCase().includes(searchTerm) ||
+          (o.refId || '').toLowerCase().includes(searchTerm)
+        );
+      }
+
+      renderTable(filtered);
+    }
+
+    function renderTable(orders) {
+      const container = document.getElementById('table-container');
+
+      if (orders.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">🍃</div><p>No orders found</p><small>Try adjusting your search or filter</small></div>';
+        return;
+      }
+
+      let html = `
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Blends</th>
+              <th>Total</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      orders.forEach((order, i) => {
+        const date = order.createdAt ? new Date(order.createdAt) : null;
+        const dateStr = date ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+        const timeStr = date ? date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+        const status = order.status || 'Received';
+        const initial = (order.name || '?')[0].toUpperCase();
+        const color = avatarColors[initial.charCodeAt(0) % avatarColors.length];
+
+        // Build blend tags
+        let blendsHtml = '—';
+        if (order.blends && order.blends.length) {
+          blendsHtml = order.blends.map(b => `<span class="blend-tag">${b}</span>`).join('');
+        }
+
+        html += `
+          <tr style="animation-delay:${i * 0.03}s">
+            <td><span class="order-ref">${order.refId || '—'}</span></td>
+            <td>
+              <div class="customer-cell">
+                <div class="customer-avatar" style="background:${color}">${initial}</div>
+                <div class="customer-info">
+                  <span class="customer-name">${order.name || '—'}</span>
+                  <span class="customer-phone">${order.phone || '—'}</span>
+                </div>
+              </div>
+            </td>
+            <td><div class="blend-tags">${blendsHtml}</div></td>
+            <td><span class="order-total">₹${(order.total || 0).toLocaleString('en-IN')}</span></td>
+            <td>
+              <span class="order-date">${dateStr}</span>
+              <span class="order-time">${timeStr}</span>
+            </td>
+            <td>
+              <select class="status-select ${status}" onchange="updateStatus('${order._id}', this.value, this)">
+                <option value="Received" ${status === 'Received' ? 'selected' : ''}>Received</option>
+                <option value="Confirmed" ${status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                <option value="Shipped" ${status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="Delivered" ${status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function updateStatus(orderId, newStatus, selectEl) {
+      selectEl.className = 'status-select ' + newStatus;
+
+      fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          // Update local data
+          const order = allOrders.find(o => o._id === orderId);
+          if (order) order.status = newStatus;
+          renderStats(allOrders);
+          showToast(`Order updated to ${newStatus}`);
+        } else {
+          showToast('Failed to update', true);
+        }
+      })
+      .catch(() => showToast('Connection error', true));
+    }
+
+    function showToast(msg, isError) {
+      const toast = document.getElementById('toast');
+      const icon = toast.querySelector('.toast-icon');
+      const text = document.getElementById('toast-text');
+      text.textContent = msg;
+      icon.textContent = isError ? '✕' : '✓';
+      icon.style.color = isError ? 'var(--red)' : 'var(--green)';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>

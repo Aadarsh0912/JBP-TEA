@@ -7,6 +7,23 @@
   <title>JBP TEA — Luxury Craft Teas</title>
   <meta name="description"
     content="Experience the ultra-smooth story of JBP TEA. Sourced from pristine high-altitude gardens and crafted for the ultimate sensory ritual.">
+  
+  <!-- Open Graph / Social Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jbptea.com/">
+  <meta property="og:title" content="JBP TEA — Luxury Craft Teas">
+  <meta property="og:description" content="Experience the ultra-smooth story of JBP TEA. Sourced from pristine high-altitude gardens and crafted for the ultimate sensory ritual.">
+  <meta property="og:image" content="https://jbptea.com/Dusk.png">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="JBP TEA — Luxury Craft Teas">
+  <meta name="twitter:description" content="Experience the ultra-smooth story of JBP TEA. Sourced from pristine high-altitude gardens and crafted for the ultimate sensory ritual.">
+  <meta name="twitter:image" content="https://jbptea.com/Dusk.png">
+
+  <!-- Favicon (SVG) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230c0d0c%22/><text y=%2265%22 x=%2250%22 font-family=%22serif%22 font-size=%2245%22 fill=%22%23f0ba32%22 text-anchor=%22middle%22 font-weight=%22bold%22>JBP</text></svg>">
+
   <link rel="stylesheet" href="styles.css?v=3">
 </head>
 
@@ -422,25 +439,26 @@
       </div>
 
       <!-- Step 3 — Your Details + Reserve -->
-      <div class="section reveal">
-        <p class="section-eyebrow"><span class="step-text">Step</span> <span class="step-num">02</span></p>
-        <h2 class="section-title">Your details.</h2>
-        <p class="section-desc">We'll confirm your reservation via WhatsApp within 24 hours.</p>
+      <form id="reservation-form" onsubmit="event.preventDefault(); submitReservation();">
+        <div class="section reveal">
+          <p class="section-eyebrow"><span class="step-text">Step</span> <span class="step-num">02</span></p>
+          <h2 class="section-title">Your details.</h2>
+          <p class="section-desc">We'll confirm your reservation via WhatsApp within 24 hours.</p>
 
-        <div class="form-box">
-          <div class="form-grid">
-            <div class="field">
-              <label>Full Name</label>
-              <input type="text" id="f-name" placeholder="Your name" required>
-            </div>
-            <div class="field">
-              <label>WhatsApp Number</label>
-              <input type="tel" id="f-phone" placeholder="+91 98765 43210" required>
-            </div>
-            <div class="field">
-              <label>Email Address</label>
-              <input type="email" id="f-email" placeholder="your@email.com">
-            </div>
+          <div class="form-box">
+            <div class="form-grid">
+              <div class="field">
+                <label>Full Name</label>
+                <input type="text" id="f-name" placeholder="Your name" required minlength="2">
+              </div>
+              <div class="field">
+                <label>WhatsApp Number</label>
+                <input type="tel" id="f-phone" placeholder="+91 98765 43210" required pattern="[\+]?[0-9\s\-\(\)]{10,15}" title="Enter a valid 10-15 digit phone number">
+              </div>
+              <div class="field">
+                <label>Email Address</label>
+                <input type="email" id="f-email" placeholder="your@email.com">
+              </div>
             <div class="field">
               <label>City</label>
               <input type="text" id="f-city" placeholder="e.g. Jabalpur">
@@ -471,7 +489,7 @@
           </div>
         </div>
 
-        <button class="reserve-btn" id="reserve-btn" onclick="submitReservation()">
+        <button type="submit" class="reserve-btn" id="reserve-btn">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
@@ -482,6 +500,7 @@
           within 24 hours.
         </p>
       </div>
+      </form>
     </div>
 
     <!-- ============================================================
@@ -571,6 +590,37 @@
     </section>
 
   </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <h2 class="footer-logo">JBP <span>TEA</span></h2>
+        <p class="footer-tagline">Crafted for the ultimate sensory ritual.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h3>Explore</h3>
+          <a href="#collection">Collection</a>
+          <a href="#reserve">Reserve</a>
+          <a href="#testimonials">Reviews</a>
+        </div>
+        <div class="footer-col">
+          <h3>Connect</h3>
+          <a href="#">Instagram</a>
+          <a href="#">WhatsApp</a>
+          <a href="mailto:hello@jbptea.com">hello@jbptea.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 JBP TEA. All rights reserved.</p>
+      <a href="/admin" class="footer-admin-link">Admin Dashboard</a>
+    </div>
+  </footer>
+
   <script src="app.js"></script>
 
 </body>

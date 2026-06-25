@@ -121,6 +121,93 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── Admin Auth Helper ──
+  const crypto = require('crypto');
+  function generateToken() {
+    const secret = process.env.ADMIN_SECRET || 'fallback_secret';
+    const password = process.env.ADMIN_PASSWORD || 'admin';
+    return crypto.createHmac('sha256', secret).update(password).digest('hex');
+  }
+  function isAuthorized(req) {
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Bearer ')) return false;
+    return auth.split(' ')[1] === generateToken();
+  }
+
+  // ── POST /api/admin/login ──
+  if (req.method === 'POST' && req.url === '/api/admin/login') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', () => {
+      try {
+        const { password } = JSON.parse(body);
+        const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
+        if (password === adminPassword) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, token: generateToken() }));
+        } else {
+          res.writeHead(401, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
+        }
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Invalid request' }));
+      }
+    });
+    return;
+  }
+
+  // ── GET /api/admin/orders ── (requires auth)
+  if (req.method === 'GET' && req.url.startsWith('/api/admin/orders')) {
+    if (!isAuthorized(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Unauthorized' }));
+      return;
+    }
+    try {
+      const db = client.db("jbp_tea");
+      const orders = await db.collection("orders").find({}).sort({ createdAt: -1 }).toArray();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, orders }));
+    } catch (err) {
+      console.error("Error fetching admin orders:", err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Failed to fetch orders' }));
+    }
+    return;
+  }
+
+  // ── PATCH /api/admin/orders/:id ── (requires auth)
+  const patchMatch = req.url.match(/^\/api\/admin\/orders\/([a-f0-9]{24})$/);
+  if (req.method === 'PATCH' && patchMatch) {
+    if (!isAuthorized(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Unauthorized' }));
+      return;
+    }
+    const orderId = patchMatch[1];
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { status } = JSON.parse(body);
+        const { ObjectId } = require('mongodb');
+        const db = client.db("jbp_tea");
+        await db.collection("orders").updateOne(
+          { _id: new ObjectId(orderId) },
+          { $set: { status: status, updatedAt: new Date().toISOString() } }
+        );
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (err) {
+        console.error("Error updating order:", err);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Failed to update order' }));
+      }
+    });
+    return;
+  }
+
   // ── Static file serving ──
   let urlPath = req.url.split('?')[0].split('#')[0];
   let filePath = path.join(__dirname, urlPath === '/' ? 'index.html' : urlPath);
@@ -216,20 +303,12 @@ const server = http.createServer(async (req, res) => {
 });
 
 // ── Start server — bind 0.0.0.0 for container hosts (Render, Railway, etc.) ──
-function startServer(p) {
-  server.listen(p, '0.0.0.0', () => {
-    console.log(`Server running at http://localhost:${p}/`);
-  }).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`Port ${p} is in use, trying ${p + 1}...`);
-      startServer(p + 1);
-    } else {
-      console.error(err);
-    }
-  });
-}
-
-startServer(PORT);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running at http://localhost:${PORT}/`);
+}).on('error', (err) => {
+  console.error("Server failed to start:", err);
+  process.exit(1);
+});
 
 // ── Graceful shutdown ──
 process.on('SIGTERM', async () => {
