@@ -303,12 +303,19 @@ const server = http.createServer(async (req, res) => {
 });
 
 // ── Start server — bind 0.0.0.0 for container hosts (Render, Railway, etc.) ──
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://localhost:${PORT}/`);
-}).on('error', (err) => {
-  console.error("Server failed to start:", err);
-  process.exit(1);
-});
+if (!process.env.VERCEL) {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://localhost:${PORT}/`);
+  }).on('error', (err) => {
+    console.error("Server failed to start:", err);
+    process.exit(1);
+  });
+}
+
+// Export for Vercel Serverless Functions
+module.exports = (req, res) => {
+  server.emit('request', req, res);
+};
 
 // ── Graceful shutdown ──
 process.on('SIGTERM', async () => {
