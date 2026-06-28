@@ -846,7 +846,7 @@ const HERO_FPS = 30; // Perfect professional playback speed
 const HERO_FRAME_DURATION = 1000 / HERO_FPS;
 
 function getHeroFramePath(i) {
-  return `Coffee_beans_falling_in_columns_202606192232_frames/frame_${String(i).padStart(3, '0')}.png`;
+  return `Coffee_beans_falling_in_frames/frame_${String(i).padStart(3, '0')}.png`;
 }
 
 function preloadHeroFrames() {
