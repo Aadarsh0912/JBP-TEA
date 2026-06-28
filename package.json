@@ -1,7 +1,6 @@
 {
   "name": "jbp-tea",
   "version": "1.0.0",
-  "main": "api/server.js",
   "engines": {
     "node": ">=18.0.0"
   },
