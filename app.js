@@ -852,8 +852,7 @@ function getHeroFramePath(i) {
 function preloadHeroFrames() {
   heroCanvasCached = document.getElementById('hero-animation-canvas');
   if (heroCanvasCached) {
-    // alpha: false tells the GPU this canvas has no transparency, massive performance boost
-    heroCtxCached = heroCanvasCached.getContext('2d', { alpha: false });
+    heroCtxCached = heroCanvasCached.getContext('2d');
   }
 
   for (let i = 1; i <= HERO_TOTAL_FRAMES; i++) {
@@ -905,8 +904,8 @@ function drawHeroFrame() {
   dX = (cW - dW) / 2;
   dY = (cH - dH) / 2;
 
-  // High quality crisp draw. No clearRect needed since image fully covers canvas.
   heroCtxCached.globalAlpha = 1;
+  heroCtxCached.clearRect(0, 0, cW, cH);
   heroCtxCached.drawImage(imgCurrent, dX, dY, dW, dH);
 }
 
