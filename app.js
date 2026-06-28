@@ -833,20 +833,32 @@ function selectBlendFromLink(blend) {
 // ============================================================
 // BACKGROUND COFFEE BEANS CANVAS ANIMATION (RESERVE HERO)
 // ============================================================
-const HERO_TOTAL_FRAMES = 95;
-const heroImages = [];
-let heroCurrentFrame = 0; // Strict integer frame
+
+// We use every 2nd frame (1, 3, 5 ... 95) = 48 frames total.
+// This cuts download from ~72MB to ~36MB while keeping it silky smooth.
+const HERO_SOURCE_FRAMES = 95;
+const HERO_STEP = 2; // use every 2nd frame
+const HERO_FRAME_INDICES = (() => {
+  const arr = [];
+  for (let i = 1; i <= HERO_SOURCE_FRAMES; i += HERO_STEP) arr.push(i);
+  return arr;
+})();
+const HERO_TOTAL_FRAMES = HERO_FRAME_INDICES.length; // 48
+
+const heroImages = new Array(HERO_TOTAL_FRAMES).fill(null);
+let heroCurrentFrame = 0;
 let heroLoadedCount = 0;
+const HERO_START_THRESHOLD = 12; // start playing after 12 frames load
 let isHeroAnimationRunning = false;
 let heroCanvasCached = null;
 let heroCtxCached = null;
 let lastHeroTickTime = 0;
 
-const HERO_FPS = 30; // Perfect professional playback speed
+const HERO_FPS = 15; // 15fps perfectly matches halved frame count
 const HERO_FRAME_DURATION = 1000 / HERO_FPS;
 
-function getHeroFramePath(i) {
-  return `Coffee_beans_falling_in_frames/frame_${String(i).padStart(3, '0')}.png`;
+function getHeroFramePath(frameNum) {
+  return `Coffee_beans_falling_in_frames/frame_${String(frameNum).padStart(3, '0')}.png`;
 }
 
 function preloadHeroFrames() {
@@ -855,19 +867,24 @@ function preloadHeroFrames() {
     heroCtxCached = heroCanvasCached.getContext('2d');
   }
 
-  for (let i = 1; i <= HERO_TOTAL_FRAMES; i++) {
+  HERO_FRAME_INDICES.forEach((frameNum, index) => {
     const img = new Image();
     img.onload = () => {
+      heroImages[index] = img;
       heroLoadedCount++;
-      if (heroLoadedCount === HERO_TOTAL_FRAMES) startHeroAnimation();
+      // Start playing as soon as first batch is ready — don't wait for all!
+      if (heroLoadedCount === HERO_START_THRESHOLD) {
+        startHeroAnimation();
+      }
     };
     img.onerror = () => {
       heroLoadedCount++;
-      if (heroLoadedCount === HERO_TOTAL_FRAMES) startHeroAnimation();
+      if (heroLoadedCount === HERO_START_THRESHOLD && !isHeroAnimationRunning) {
+        startHeroAnimation();
+      }
     };
-    img.src = getHeroFramePath(i);
-    heroImages.push(img);
-  }
+    img.src = getHeroFramePath(frameNum);
+  });
 }
 
 function resizeHeroCanvas() {
@@ -877,11 +894,8 @@ function resizeHeroCanvas() {
   const rect = heroSection.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
 
-  // Set the internal backing resolution to match physical screen pixels (removes blur)
   heroCanvasCached.width = rect.width * dpr;
   heroCanvasCached.height = rect.height * dpr;
-
-  // Keep the CSS display size matched to the layout
   heroCanvasCached.style.width = `${rect.width}px`;
   heroCanvasCached.style.height = `${rect.height}px`;
 
@@ -892,6 +906,7 @@ function drawHeroFrame() {
   if (!heroCtxCached) return;
 
   const imgCurrent = heroImages[heroCurrentFrame];
+  // Skip this frame if it hasn't loaded yet — never stall the animation
   if (!imgCurrent || !imgCurrent.complete || imgCurrent.naturalWidth === 0) return;
 
   const cW = heroCanvasCached.width,  cH = heroCanvasCached.height;
@@ -904,7 +919,6 @@ function drawHeroFrame() {
   dX = (cW - dW) / 2;
   dY = (cH - dH) / 2;
 
-  heroCtxCached.globalAlpha = 1;
   heroCtxCached.clearRect(0, 0, cW, cH);
   heroCtxCached.drawImage(imgCurrent, dX, dY, dW, dH);
 }
@@ -912,10 +926,10 @@ function drawHeroFrame() {
 function startHeroAnimation() {
   if (isHeroAnimationRunning) return;
   isHeroAnimationRunning = true;
-  
+
   resizeHeroCanvas();
   window.addEventListener('resize', resizeHeroCanvas);
-  
+
   requestAnimationFrame(heroTick);
 }
 
@@ -925,8 +939,6 @@ function heroTick(timestamp) {
 
   if (!lastHeroTickTime) lastHeroTickTime = timestamp;
 
-  // Simple, professional throttle to exactly 30 FPS.
-  // The -2 handles microscopic floating point inaccuracies in browser refresh rates.
   if (timestamp - lastHeroTickTime >= HERO_FRAME_DURATION - 2) {
     lastHeroTickTime = timestamp;
     heroCurrentFrame = (heroCurrentFrame + 1) % HERO_TOTAL_FRAMES;
@@ -934,7 +946,9 @@ function heroTick(timestamp) {
   }
 }
 
+
 // ============================================================
+
 // MAGNETIC BUTTONS
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
