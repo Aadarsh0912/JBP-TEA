@@ -5,21 +5,21 @@ const path = require('path');
 const { MongoClient } = require('mongodb');
 
 const uri = process.env.MONGODB_URI;
+let client;
 if (!uri) {
   console.error("FATAL: MONGODB_URI environment variable is not set. Create a .env file or set it in your hosting platform.");
-  process.exit(1);
-}
-const client = new MongoClient(uri);
-
-async function connectDB() {
-  try {
-    await client.connect();
-    console.log("Connected successfully to MongoDB");
-  } catch (err) {
-    console.error("MongoDB connection error:", err);
+} else {
+  client = new MongoClient(uri);
+  async function connectDB() {
+    try {
+      await client.connect();
+      console.log("Connected successfully to MongoDB");
+    } catch (err) {
+      console.error("MongoDB connection error:", err);
+    }
   }
+  connectDB();
 }
-connectDB();
 
 // Use PORT from env (Railway, Render, Heroku inject this) or fallback to 3000
 const PORT = process.env.PORT || 3000;
@@ -66,23 +66,16 @@ const server = http.createServer(async (req, res) => {
 
   // ── POST /api/orders ──
   if (req.method === 'POST' && req.url === '/api/orders') {
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-      // Prevent excessively large payloads (1 MB limit)
-      if (body.length > 1e6) {
-        res.writeHead(413, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: 'Payload too large' }));
-        req.destroy();
-      }
-    });
-    req.on('end', async () => {
+    if (!client) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'Database not configured' }));
+    }
+    
+    async function handleOrder(orderData) {
       try {
-        const order = JSON.parse(body);
-        
         const db = client.db("jbp_tea");
         const ordersCollection = db.collection("orders");
-        await ordersCollection.insertOne(order);
+        await ordersCollection.insertOne(orderData);
         
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, message: 'Order received successfully.' }));
@@ -91,12 +84,40 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Failed to process order' }));
       }
-    });
+    }
+
+    if (req.body) {
+      // Vercel already parsed the body!
+      let order = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      return handleOrder(order);
+    } else {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+        if (body.length > 1e6) {
+          res.writeHead(413, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Payload too large' }));
+          req.destroy();
+        }
+      });
+      req.on('end', () => {
+        try {
+          handleOrder(JSON.parse(body));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Invalid JSON' }));
+        }
+      });
+    }
     return;
   }
 
   // ── GET /api/orders?phone=... ──
   if (req.method === 'GET' && req.url.startsWith('/api/orders')) {
+    if (!client) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'Database not configured' }));
+    }
     try {
       const urlObj = new URL(req.url, `http://${req.headers.host}`);
       const phone = urlObj.searchParams.get('phone');
@@ -136,29 +157,41 @@ const server = http.createServer(async (req, res) => {
 
   // ── POST /api/admin/login ──
   if (req.method === 'POST' && req.url === '/api/admin/login') {
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    req.on('end', () => {
-      try {
-        const { password } = JSON.parse(body);
-        const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
-        if (password === adminPassword) {
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, token: generateToken() }));
-        } else {
-          res.writeHead(401, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
-        }
-      } catch (err) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: 'Invalid request' }));
+    function handleLogin(loginData) {
+      const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
+      if (loginData.password === adminPassword) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, token: generateToken() }));
+      } else {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Invalid password' }));
       }
-    });
+    }
+
+    if (req.body) {
+      let loginData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      return handleLogin(loginData);
+    } else {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          handleLogin(JSON.parse(body));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Invalid request' }));
+        }
+      });
+    }
     return;
   }
 
   // ── GET /api/admin/orders ── (requires auth)
   if (req.method === 'GET' && req.url.startsWith('/api/admin/orders')) {
+    if (!client) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'Database not configured' }));
+    }
     if (!isAuthorized(req)) {
       res.writeHead(401, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: false, error: 'Unauthorized' }));
@@ -180,22 +213,24 @@ const server = http.createServer(async (req, res) => {
   // ── PATCH /api/admin/orders/:id ── (requires auth)
   const patchMatch = req.url.match(/^\/api\/admin\/orders\/([a-f0-9]{24})$/);
   if (req.method === 'PATCH' && patchMatch) {
+    if (!client) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'Database not configured' }));
+    }
     if (!isAuthorized(req)) {
       res.writeHead(401, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: false, error: 'Unauthorized' }));
       return;
     }
     const orderId = patchMatch[1];
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    req.on('end', async () => {
+    
+    async function handlePatch(patchData) {
       try {
-        const { status } = JSON.parse(body);
         const { ObjectId } = require('mongodb');
         const db = client.db("jbp_tea");
         await db.collection("orders").updateOne(
           { _id: new ObjectId(orderId) },
-          { $set: { status: status, updatedAt: new Date().toISOString() } }
+          { $set: { status: patchData.status, updatedAt: new Date().toISOString() } }
         );
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true }));
@@ -204,7 +239,23 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Failed to update order' }));
       }
-    });
+    }
+
+    if (req.body) {
+      let patchData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      return handlePatch(patchData);
+    } else {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          handlePatch(JSON.parse(body));
+        } catch (e) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Invalid request' }));
+        }
+      });
+    }
     return;
   }
 
