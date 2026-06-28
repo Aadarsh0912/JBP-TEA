@@ -210,10 +210,10 @@ const server = http.createServer(async (req, res) => {
 
   // ── Static file serving ──
   let urlPath = req.url.split('?')[0].split('#')[0];
-  let filePath = path.join(__dirname, urlPath === '/' ? 'index.html' : urlPath);
+  let filePath = path.join(__dirname, '..', urlPath === '/' ? 'index.html' : urlPath);
 
   // Safety check: prevent path traversal
-  const relative = path.relative(__dirname, filePath);
+  const relative = path.relative(path.join(__dirname, '..'), filePath);
   const isSafe = relative && !relative.startsWith('..') && !path.isAbsolute(relative);
   
   if (urlPath !== '/' && isSafe === false) {
